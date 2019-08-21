@@ -76,6 +76,9 @@ public class QtiImsExtUtils {
     public static final String QTI_IMS_STATIC_IMAGE_SETTING =
             "ims_vt_call_static_image";
 
+    /* name for call transfer setting */
+    private static final String IMS_CALL_TRANSFER_SETTING = "ims_call_transfer";
+
     /**
      * Definitions for the call transfer type. For easier implementation,
      * the transfer type is defined as a bit mask value.
@@ -387,7 +390,8 @@ public class QtiImsExtUtils {
      * Returns true if enabled, or false otherwise.
      */
     public static boolean isCallTransferEnabled(Context context) {
-        return SystemProperties.getBoolean("persist.vendor.radio.ims_call_transfer", false);
+        return Settings.Global.getInt(context.getContentResolver(), IMS_CALL_TRANSFER_SETTING, 0)
+                == 1;
     }
 
    /**
@@ -604,5 +608,21 @@ public class QtiImsExtUtils {
     public static boolean isCancelModifyCallSupported(int phoneId, Context context) {
         return (isCarrierConfigEnabled(phoneId, context,
                 QtiCarrierConfigs.KEY_CARRIER_CANCEL_MODIFY_CALL_SUPPORTED));
+    }
+
+    // Supported for multi sim only. Allows user to enable or disable auto rejecting IMS MT calls
+    // when high priority data is on the other sub
+    public static void setAutoReject(ContentResolver contentResolver, int phoneId, boolean turnOn) {
+        final int value = turnOn ? QtiCallConstants.AUTO_REJECT_CALL_ENABLED :
+                QtiCallConstants.AUTO_REJECT_CALL_DISABLED;
+        android.provider.Settings.Global.putInt(contentResolver,
+                QtiCallConstants.IMS_AUTO_REJECT + phoneId, value);
+    }
+
+    // Supported for multi sim only. Default value is disabled
+    public static int getAutoReject(ContentResolver contentResolver, int phoneId) {
+        return android.provider.Settings.Global.getInt(contentResolver,
+                QtiCallConstants.IMS_AUTO_REJECT + phoneId,
+                QtiCallConstants.AUTO_REJECT_CALL_DISABLED);
     }
 }
